@@ -8,7 +8,7 @@ const NetworkGraph = ({ data, filters }) => {
     // Firefox canvas fix
     const isFirefox = typeof InstallTrigger !== 'undefined';
 
-    // Show labels only when zoomed enough (optional)
+    // Show labels only when a single arch or field is selected (optional)
     const showLabels = filters.selectedArch.length === 1 || filters.selectedField.length === 1;
 
     // Resize handler
@@ -29,7 +29,7 @@ const NetworkGraph = ({ data, filters }) => {
     // Tooltip (built‑in)
     const nodeLabel = node => `${node.id}: ${node.val.toLocaleString()} publications`;
 
-    // Reduce hit area to avoid accidental node selection when many nodes are close
+    // Reduce hit area to avoid accidental selection when many nodes are close
     const nodePointerAreaPaint = (node, color, ctx) => {
         ctx.beginPath();
         ctx.arc(node.x, node.y, 2, 0, 2 * Math.PI, false); // tiny invisible circle
@@ -51,8 +51,7 @@ const NetworkGraph = ({ data, filters }) => {
                 backgroundColor="#0f172a"
                 enableZoomPanInteraction={true}
                 enableNodeDrag={true}
-                // Prevent default zoom‑on‑click and stop propagation
-                onNodeClick={(node, event) => { if (event) event.stopPropagation(); }}
+                onNodeClick={() => { }}
                 onNodeHover={() => { }}
                 onBackgroundClick={() => { }}
                 nodePointerAreaPaint={nodePointerAreaPaint}
