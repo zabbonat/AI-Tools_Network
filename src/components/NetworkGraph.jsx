@@ -38,6 +38,8 @@ const NetworkGraph = ({ data, filters }) => {
                 nodeVal="val"
                 linkColor={() => 'rgba(255,255,255,0.2)'}
                 backgroundColor="#0f172a"
+                enableNodeDrag={true}
+                onNodeClick={() => { }}
                 nodeCanvasObject={(node, ctx, globalScale) => {
                     const label = node.id;
                     const fontSize = 12 / globalScale;
