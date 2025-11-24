@@ -19,7 +19,7 @@ function App() {
   useEffect(() => {
     const loadDefault = async () => {
       try {
-        const response = await fetch('/checkpoint.csv');
+        const response = await fetch(`${import.meta.env.BASE_URL}checkpoint.csv`);
         if (response.ok) {
           const text = await response.text();
           const data = await parseCSV(text);
