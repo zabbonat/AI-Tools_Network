@@ -4,7 +4,6 @@ import ForceGraph2D from 'react-force-graph-2d';
 const NetworkGraph = ({ data, filters }) => {
     const graphRef = useRef();
     const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
-    const mouseDownPos = useRef(null);
 
     // Detect Firefox for specific fixes
     const isFirefox = typeof InstallTrigger !== 'undefined';
@@ -27,40 +26,6 @@ const NetworkGraph = ({ data, filters }) => {
         }
     }, []);
 
-    // Track mouse position to detect pan vs click
-    useEffect(() => {
-        const handleMouseDown = (e) => {
-            mouseDownPos.current = { x: e.clientX, y: e.clientY };
-        };
-
-        const handleMouseUp = () => {
-            mouseDownPos.current = null;
-        };
-
-        window.addEventListener('mousedown', handleMouseDown);
-        window.addEventListener('mouseup', handleMouseUp);
-
-        return () => {
-            window.removeEventListener('mousedown', handleMouseDown);
-            window.removeEventListener('mouseup', handleMouseUp);
-        };
-    }, []);
-
-    const handleNodeClick = (node, event) => {
-        // Check if mouse moved more than 5px (indicates drag/pan, not click)
-        if (mouseDownPos.current) {
-            const dx = Math.abs(event.clientX - mouseDownPos.current.x);
-            const dy = Math.abs(event.clientY - mouseDownPos.current.y);
-            if (dx > 5 || dy > 5) {
-                return; // Was a drag, not a click
-            }
-        }
-
-        // Just center on node, no tooltip
-        graphRef.current.centerAt(node.x, node.y, 1000);
-        graphRef.current.zoom(3, 1000);
-    };
-
     return (
         <div className="fixed inset-0 bg-background z-0">
             <ForceGraph2D
@@ -73,7 +38,6 @@ const NetworkGraph = ({ data, filters }) => {
                 nodeVal="val"
                 linkColor={() => 'rgba(255,255,255,0.2)'}
                 backgroundColor="#0f172a"
-                onNodeClick={handleNodeClick}
                 nodeCanvasObject={(node, ctx, globalScale) => {
                     const label = node.id;
                     const fontSize = 12 / globalScale;
