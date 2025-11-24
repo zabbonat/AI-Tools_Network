@@ -5,10 +5,10 @@ const NetworkGraph = ({ data, filters }) => {
     const graphRef = useRef();
     const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
 
-    // Detect Firefox for specific canvas fixes
+    // Firefox canvas fix
     const isFirefox = typeof InstallTrigger !== 'undefined';
 
-    // Show labels when zoomed in (optional, but we always provide tooltip via nodeLabel)
+    // Show labels only when zoomed enough (optional)
     const showLabels = filters.selectedArch.length === 1 || filters.selectedField.length === 1;
 
     // Resize handler
@@ -26,6 +26,17 @@ const NetworkGraph = ({ data, filters }) => {
         }
     }, []);
 
+    // Tooltip (built‑in)
+    const nodeLabel = node => `${node.id}: ${node.val.toLocaleString()} publications`;
+
+    // Reduce hit area to avoid accidental node selection when many nodes are close
+    const nodePointerAreaPaint = (node, color, ctx) => {
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 2, 0, 2 * Math.PI, false); // tiny invisible circle
+        ctx.fillStyle = color;
+        ctx.fill();
+    };
+
     return (
         <div className="fixed inset-0 bg-background z-0">
             <ForceGraph2D
@@ -33,16 +44,18 @@ const NetworkGraph = ({ data, filters }) => {
                 width={dimensions.width}
                 height={dimensions.height}
                 graphData={data}
-                // Tooltip with publications count (always available)
-                nodeLabel={node => `${node.id}: ${node.val.toLocaleString()} publications`}
+                nodeLabel={nodeLabel}
                 nodeColor={node => (node.group === 'architecture' ? '#ef4444' : '#3b82f6')}
                 nodeVal="val"
                 linkColor={() => 'rgba(255,255,255,0.2)'}
                 backgroundColor="#0f172a"
                 enableZoomPanInteraction={true}
                 enableNodeDrag={true}
-                // Prevent the library's default zoom‑on‑click behaviour
-                onNodeClick={() => { }}
+                // Prevent default zoom‑on‑click and stop propagation
+                onNodeClick={(node, event) => { if (event) event.stopPropagation(); }}
+                onNodeHover={() => { }}
+                onBackgroundClick={() => { }}
+                nodePointerAreaPaint={nodePointerAreaPaint}
                 nodeCanvasObject={(node, ctx, globalScale) => {
                     const label = node.id;
                     const fontSize = 12 / globalScale;
@@ -52,14 +65,13 @@ const NetworkGraph = ({ data, filters }) => {
                     ctx.font = `${fontSize}px Sans-Serif`;
                     const textWidth = ctx.measureText(label).width;
 
-                    const r = Math.sqrt(node.val) * 0.01 + 1; // size scaling
+                    const r = Math.sqrt(node.val) * 0.01 + 1;
                     ctx.beginPath();
                     ctx.arc(node.x, node.y, r, 0, 2 * Math.PI, false);
                     ctx.fillStyle = node.group === 'architecture' ? '#ef4444' : '#3b82f6';
                     ctx.fill();
                     ctx.closePath();
 
-                    // Show label only when sufficiently zoomed in
                     if (globalScale > 1.5) {
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
                         ctx.fillText(label, node.x - textWidth / 2, node.y + r + fontSize);
