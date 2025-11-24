@@ -11,14 +11,14 @@ const NetworkGraph = ({ data, filters }) => {
     // Show labels only when filtering by single arch or single field
     const showLabels = filters.selectedArch.length === 1 || filters.selectedField.length === 1;
 
+    // Resize handler
     useEffect(() => {
-        const handleResize = () => {
-            setDimensions({ width: window.innerWidth, height: window.innerHeight });
-        };
+        const handleResize = () => setDimensions({ width: window.innerWidth, height: window.innerHeight });
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    // Force graph forces
     useEffect(() => {
         if (graphRef.current) {
             graphRef.current.d3Force('charge').strength(-100);
@@ -38,40 +38,30 @@ const NetworkGraph = ({ data, filters }) => {
                 nodeVal="val"
                 linkColor={() => 'rgba(255,255,255,0.2)'}
                 backgroundColor="#0f172a"
-                enableNodeDrag={true}
+                enableNodeDrag={false}
                 onNodeClick={() => { }}
                 nodeCanvasObject={(node, ctx, globalScale) => {
                     const label = node.id;
                     const fontSize = 12 / globalScale;
 
-                    // Firefox-specific fix: save context state
-                    if (isFirefox) {
-                        ctx.save();
-                    }
+                    if (isFirefox) ctx.save();
 
                     ctx.font = `${fontSize}px Sans-Serif`;
                     const textWidth = ctx.measureText(label).width;
 
-                    // Draw circle - MUCH SMALLER (40x reduction)
-                    const r = Math.sqrt(node.val) * 0.01 + 1; // 40x smaller
-
-                    // Firefox-specific: explicit path operations
+                    const r = Math.sqrt(node.val) * 0.01 + 1;
                     ctx.beginPath();
                     ctx.arc(node.x, node.y, r, 0, 2 * Math.PI, false);
                     ctx.fillStyle = node.group === 'architecture' ? '#ef4444' : '#3b82f6';
                     ctx.fill();
-                    ctx.closePath(); // Firefox fix: explicitly close path
+                    ctx.closePath();
 
-                    // Draw label if zoomed in
                     if (globalScale > 1.5) {
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
                         ctx.fillText(label, node.x - textWidth / 2, node.y + r + fontSize);
                     }
 
-                    // Firefox-specific fix: restore context state
-                    if (isFirefox) {
-                        ctx.restore();
-                    }
+                    if (isFirefox) ctx.restore();
                 }}
             />
         </div>
