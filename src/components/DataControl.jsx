@@ -76,6 +76,9 @@ const DataControl = ({
                         {isLoading ? 'Processing...' : 'Drop CSV or Click'}
                     </p>
                 </div>
+                <p className="text-[10px] text-text-secondary mt-2 text-center">
+                    Required columns: <span className="font-mono text-primary">architecture, year, field_name, publications</span>
+                </p>
             </div>
 
             {/* Stats Section */}

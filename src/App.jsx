@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import NetworkGraph from './components/NetworkGraph';
 import DataControl from './components/DataControl';
+import TemporalPlot from './components/TemporalPlot';
 import { parseCSV, processGraphData, getUniqueArchitectures, getUniqueFields } from './utils/dataProcessing';
 
 function App() {
@@ -113,6 +114,11 @@ function App() {
         architectures={architectures}
         fields={fields}
         isLoading={isLoading}
+      />
+
+      <TemporalPlot
+        data={rawData}
+        selectedArch={filters.selectedArch.length === 1 ? filters.selectedArch[0] : null}
       />
 
       {isLoading && (
