@@ -4,8 +4,7 @@ import ForceGraph2D from 'react-force-graph-2d';
 const NetworkGraph = ({ data, filters }) => {
     const graphRef = useRef();
     const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
-    const [isDragging, setIsDragging] = useState(false);
-    const dragStartPos = useRef(null);
+    const mouseDownPos = useRef(null);
 
     // Detect Firefox for specific fixes
     const isFirefox = typeof InstallTrigger !== 'undefined';
@@ -28,18 +27,34 @@ const NetworkGraph = ({ data, filters }) => {
         }
     }, []);
 
-    // Track drag to prevent click during pan
-    const handleNodeDragStart = () => {
-        setIsDragging(true);
-    };
+    // Track mouse position to detect pan vs click
+    useEffect(() => {
+        const handleMouseDown = (e) => {
+            mouseDownPos.current = { x: e.clientX, y: e.clientY };
+        };
 
-    const handleNodeDragEnd = () => {
-        setTimeout(() => setIsDragging(false), 100);
-    };
+        const handleMouseUp = () => {
+            mouseDownPos.current = null;
+        };
+
+        window.addEventListener('mousedown', handleMouseDown);
+        window.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            window.removeEventListener('mousedown', handleMouseDown);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, []);
 
     const handleNodeClick = (node, event) => {
-        // Prevent zoom if dragging
-        if (isDragging) return;
+        // Check if mouse moved more than 5px (indicates drag/pan, not click)
+        if (mouseDownPos.current) {
+            const dx = Math.abs(event.clientX - mouseDownPos.current.x);
+            const dy = Math.abs(event.clientY - mouseDownPos.current.y);
+            if (dx > 5 || dy > 5) {
+                return; // Was a drag, not a click
+            }
+        }
 
         // Just center on node, no tooltip
         graphRef.current.centerAt(node.x, node.y, 1000);
@@ -59,8 +74,6 @@ const NetworkGraph = ({ data, filters }) => {
                 linkColor={() => 'rgba(255,255,255,0.2)'}
                 backgroundColor="#0f172a"
                 onNodeClick={handleNodeClick}
-                onNodeDragStart={handleNodeDragStart}
-                onNodeDragEnd={handleNodeDragEnd}
                 nodeCanvasObject={(node, ctx, globalScale) => {
                     const label = node.id;
                     const fontSize = 12 / globalScale;
