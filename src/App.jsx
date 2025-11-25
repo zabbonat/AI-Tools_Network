@@ -118,7 +118,8 @@ function App() {
 
       <TemporalPlot
         data={rawData}
-        selectedArch={filters.selectedArch.length === 1 ? filters.selectedArch[0] : null}
+        selectedArches={filters.selectedArch}
+        selectedFields={filters.selectedField}
       />
 
       {isLoading && (
