@@ -7,40 +7,59 @@ const TemporalPlot = ({ data, selectedArches, selectedFields }) => {
             return { chartData: [], lines: [] };
         }
 
-        // Helper to get data for a specific key (arch or field)
-        const getSeries = (key, type) => {
-            const filtered = data.filter(d => type === 'arch' ? d.architecture === key : d.field_name === key);
-            const aggregated = filtered.reduce((acc, curr) => {
-                const year = curr.year;
-                acc[year] = (acc[year] || 0) + curr.publications;
-                return acc;
-            }, {});
-            return aggregated;
-        };
+        let activeFields = [];
+        let filterByArch = false;
 
-        // Collect all series
+        // Logic 1: Arch selected, Field NOT selected -> Show all fields for that Arch
+        if (selectedArches.length > 0 && selectedFields.length === 0) {
+            // Find all fields present in the data for the selected architectures
+            const relevantFields = new Set();
+            data.forEach(d => {
+                if (selectedArches.includes(d.architecture)) {
+                    relevantFields.add(d.field_name);
+                }
+            });
+            activeFields = Array.from(relevantFields).sort();
+            filterByArch = true;
+        }
+        // Logic 2: Field selected (Arch optional) -> Show selected fields
+        else if (selectedFields.length > 0) {
+            activeFields = selectedFields;
+            // If Arch is ALSO selected, we will filter by it
+            if (selectedArches.length > 0) {
+                filterByArch = true;
+            }
+        }
+
+        // Generate Series
         const seriesMap = {};
         const allYears = new Set();
         const linesConfig = [];
 
-        // predefined colors or generate them
+        // Colors
         const colors = [
             '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
             '#ec4899', '#6366f1', '#14b8a6', '#f97316', '#06b6d4'
         ];
         let colorIdx = 0;
 
-        selectedArches.forEach(arch => {
-            const series = getSeries(arch, 'arch');
-            seriesMap[arch] = series;
-            Object.keys(series).forEach(y => allYears.add(parseInt(y)));
-            linesConfig.push({ key: arch, color: colors[colorIdx++ % colors.length] });
-        });
+        activeFields.forEach(field => {
+            // Filter data
+            const filtered = data.filter(d => {
+                if (d.field_name !== field) return false;
+                if (filterByArch && !selectedArches.includes(d.architecture)) return false;
+                return true;
+            });
 
-        selectedFields.forEach(field => {
-            const series = getSeries(field, 'field');
-            seriesMap[field] = series;
-            Object.keys(series).forEach(y => allYears.add(parseInt(y)));
+            // Aggregate by year
+            const aggregated = filtered.reduce((acc, curr) => {
+                const year = curr.year;
+                acc[year] = (acc[year] || 0) + curr.publications;
+                return acc;
+            }, {});
+
+            seriesMap[field] = aggregated;
+            Object.keys(aggregated).forEach(y => allYears.add(parseInt(y)));
             linesConfig.push({ key: field, color: colors[colorIdx++ % colors.length] });
         });
 
@@ -63,7 +82,9 @@ const TemporalPlot = ({ data, selectedArches, selectedFields }) => {
         <div className="fixed bottom-0 left-0 right-0 h-72 bg-surface/95 backdrop-blur-sm border-t border-secondary/20 p-4 z-40 transition-transform duration-300 ease-in-out transform translate-y-0">
             <div className="max-w-7xl mx-auto h-full flex flex-col">
                 <h3 className="text-sm font-bold text-primary mb-2">
-                    Publication Trends
+                    {selectedArches.length > 0 && selectedFields.length === 0
+                        ? `Field Breakdown for: ${selectedArches.join(', ')}`
+                        : 'Field Trends'}
                 </h3>
                 <div className="flex-1 w-full min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
