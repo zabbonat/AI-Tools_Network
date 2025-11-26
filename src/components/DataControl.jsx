@@ -115,6 +115,31 @@ const DataControl = ({
                     Filters
                 </h2>
 
+                {/* Eras */}
+                <div>
+                    <label className="block text-xs text-text-secondary mb-1">Eras</label>
+                    <div className="grid grid-cols-1 gap-1">
+                        <button
+                            onClick={() => setFilters({ ...filters, yearStart: 2000, yearEnd: 2013 })}
+                            className="px-2 py-1 bg-secondary/20 hover:bg-primary/20 text-xs text-text-primary rounded text-left transition-colors border border-transparent hover:border-primary/30"
+                        >
+                            Classical (2000-2013)
+                        </button>
+                        <button
+                            onClick={() => setFilters({ ...filters, yearStart: 2014, yearEnd: 2017 })}
+                            className="px-2 py-1 bg-secondary/20 hover:bg-primary/20 text-xs text-text-primary rounded text-left transition-colors border border-transparent hover:border-primary/30"
+                        >
+                            Deep Learning (2014-2017)
+                        </button>
+                        <button
+                            onClick={() => setFilters({ ...filters, yearStart: 2017, yearEnd: 2024 })}
+                            className="px-2 py-1 bg-secondary/20 hover:bg-primary/20 text-xs text-text-primary rounded text-left transition-colors border border-transparent hover:border-primary/30"
+                        >
+                            Generative (2017-2024)
+                        </button>
+                    </div>
+                </div>
+
                 {/* Year Range */}
                 <div>
                     <label className="block text-xs text-text-secondary mb-1">Year Range</label>
